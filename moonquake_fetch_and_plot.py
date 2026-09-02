@@ -17,8 +17,23 @@ requests and a very long run).
 """
 import argparse
 
+import matplotlib.style as mplstyle
+
 import pse_fetch
 import pse_plot
+
+# pse_plot.py plots with plt.style.context("seaborn-darkgrid"), a style name
+# matplotlib renamed to "seaborn-v0_8-darkgrid" in 3.6 and no longer resolves
+# under the old name. Rather than pin an old matplotlib (which has no
+# prebuilt wheel for recent Python and would have to compile from source),
+# alias the old name to the new style so the original script works unchanged
+# on current matplotlib.
+_STYLE_ALIASES = {"seaborn-darkgrid": "seaborn-v0_8-darkgrid"}
+for _old, _new in _STYLE_ALIASES.items():
+    if _old not in mplstyle.library and _new in mplstyle.library:
+        mplstyle.library[_old] = mplstyle.library[_new]
+        if _old not in mplstyle.available:
+            mplstyle.available.append(_old)
 
 
 def _norm(value):
