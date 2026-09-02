@@ -32,7 +32,8 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install obspy "matplotlib<3.6" numpy pandas beautifulsoup4
+        run: pip install obspy matplotlib numpy pandas beautifulsoup4
+
       - name: Fetch and plot seismic data
         run: |
           python moonquake_fetch_and_plot.py \
