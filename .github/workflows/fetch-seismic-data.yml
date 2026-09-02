@@ -1,0 +1,50 @@
+name: Fetch Apollo Seismic Data
+
+# Manually triggered from the Actions tab. GitHub's own runners have normal
+# internet access, so this can reach NASA's PDS archive even though a
+# sandboxed dev environment might not be able to.
+on:
+  workflow_dispatch:
+    inputs:
+      station:
+        description: "Station: s11, s12, s14, s15, s16, or 'all'"
+        required: true
+        default: "s12"
+      year:
+        description: "Year 1969-1977, or 'all'"
+        required: true
+        default: "1971"
+      day:
+        description: "Day of year 1-366, or 'all' (leave narrow - 'all' can mean thousands of requests)"
+        required: true
+        default: "100"
+
+jobs:
+  fetch-and-plot:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install obspy matplotlib numpy pandas beautifulsoup4
+
+      - name: Fetch and plot seismic data
+        run: |
+          python moonquake_fetch_and_plot.py \
+            --station "${{ github.event.inputs.station }}" \
+            --year "${{ github.event.inputs.year }}" \
+            --day "${{ github.event.inputs.day }}"
+
+      - name: Commit results back to the repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data plots
+          git diff --cached --quiet || git commit -m "Fetch seismic data: station=${{ github.event.inputs.station }} year=${{ github.event.inputs.year }} day=${{ github.event.inputs.day }}"
+          git push
